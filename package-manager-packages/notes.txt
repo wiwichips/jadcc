@@ -1,0 +1,6 @@
+notes from my meeting with chris 
+
+
+This should HOPEFULLY give me a base 64 string that I can then turn into a Buffer....
+
+he said to use deshard () since it downloads and does everything and HOPEFULLY gives me a string at the end
