@@ -1,3 +1,4 @@
+#!/bin/usr/env node
 /*
  * Copyright 2020 WebAssembly Community Group participants
  *
@@ -13,6 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+///////////////////////////
+async function bigWinjWrapper() {
+/* 
+const CLANG_WINJ_BYTES   = WINJ_EMBED_FILE_AS_BIN('./clang');
+const MEMFS_WINJ_BYTES   = WINJ_EMBED_FILE_AS_BIN('./memfs');
+const SYSROOT_WINJ_BYTES = WINJ_EMBED_FILE_AS_BIN('./sysroot.tar');
+*/
 
 const { promises: fs } = require('fs');
 const fetch = async function fetchWrapper(filename) {
@@ -782,13 +791,24 @@ function toArrayBuffer(buf) {
 // actually calls the compile stuff
 async function compile () {
   async function readBuffer(filename) {
-    const response = await fetch(filename);
+    const response = await fetch('sysroot.tar'); // this is where sysroot.tar is loaded
+    
     const ab = toArrayBuffer(response);
     return ab;
   }
 
   async function compileStreaming(filename) {
-    const response = await fetch(filename); // this would be a winj
+    //const response = await fetch(filename); // this is where memfs and clang are loaded
+    let response;
+
+    if (filename === 'clang') {
+      response = await fetch('clang'); 
+    } else if (filename === 'memfs') {
+      response = await fetch('memfs');
+    } else {
+      throw new Error('expected to loade clang or memfs');
+    }
+
     const ab = toArrayBuffer(response);
     return WebAssembly.compile(ab);
   }
@@ -817,5 +837,13 @@ async function compile () {
   console.log(outputBuf);
 }
 
-compile();
+await compile();
 
+} ////////////////////// end of big winj wrapper
+
+
+
+bigWinjWrapper().then((res) => {
+  console.log(`DONE - EXITING ${res}`);
+  process.exit(0);  
+})
