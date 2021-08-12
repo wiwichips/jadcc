@@ -692,25 +692,12 @@ class API {
     this.hostWrite(`${yellowArrow}${message}`);
   }
 
-  async hostLogAsync(message, promise) {
-    const start = +new Date();
-    this.hostLog(`${message}...`);
-    const result = await promise;
-    const end = +new Date();
-    this.hostWrite(' done.');
-    if (this.showTiming) {
-      const green = '\x1b[92m';
-      const normal = '\x1b[0m';
-      this.hostWrite(` ${green}(${msToSec(start, end)}s)${normal}\n`);
-    }
-    this.hostWrite('\n');
-    return result;
-  }
-
   async getModule(name) {
+    assert(name === 'clang'); // for my sake, this name will always equal clang
     if (this.moduleCache[name]) return this.moduleCache[name];
-    const module = await this.hostLogAsync(`Fetching and compiling ${name}`,
-                                           this.compileStreaming(name));
+    console.log('> Fetching and compiling clang...');
+    // TODO XXX wp - use winj for clang
+    const module = await this.compileStreaming(name);
     this.moduleCache[name] = module;
     return module;
   }
@@ -718,10 +705,12 @@ class API {
   async untar(memfs, filename) {
     await this.memfs.ready;
     const promise = (async () => {
+      // TODO XXX wp - use winj for tar
       const tar = new Tar(await this.readBuffer(filename));
       tar.untar(this.memfs);
     })();
-    await this.hostLogAsync(`Untarring ${filename}`, promise);
+    console.log(`> Untarring ${filename}`);
+    await promise;
   }
 
   async compile(options) {
@@ -757,34 +746,6 @@ console.log('compileToAssembly called -- ');
     return this.memfs.getFileContents(output);
   }
 
-  async compileTo6502(options) {
-    const input = options.input;
-    const output = options.output;
-    const contents = options.contents;
-    const flags = options.flags;
-
-    await this.ready;
-    this.memfs.addFile(input, contents);
-    const vasm = await this.getModule('vasm6502_oldstyle');
-    await this.run(vasm, 'vasm6502_oldstyle', ...flags, '-o', output, input);
-    return this.memfs.getFileContents(output);
-  }
-/*
-  async link(obj, wasm) {
-    const stackSize = 1024 * 1024;
-
-    const libdir = 'lib/wasm32-wasi';
-    const crt1 = `${libdir}/crt1.o`;
-    await this.ready;
-    const lld = await this.getModule(this.lldFilename);
-    return await this.run(
-        lld, 'wasm-ld', '--no-threads',
-        '--export-dynamic',  // TODO required?
-        '-z', `stack-size=${stackSize}`, `-L${libdir}`, crt1, obj, '-lc',
-        '-lc++', '-lc++abi', '-lcanvas', '-o', wasm)
-  }
-*/
-
   async run(module, ...args) {
     this.hostLog(`${args.join(' ')}\n`);
     const start = +new Date();
@@ -802,20 +763,6 @@ console.log('compileToAssembly called -- ');
     }
     return stillRunning ? app : null;
   }
-/*
-  async compileLinkRun(contents) {
-    const input = `test.cc`;
-    const obj = `test.o`;
-    const wasm = `test.wasm`;
-    await this.compile({input, contents, obj});
-    await this.link(obj, wasm);
-
-    const buffer = this.memfs.getFileContents(wasm);
-    const testMod = await this.hostLogAsync(`Compiling ${wasm}`,
-                                            WebAssembly.compile(buffer));
-    return await this.run(testMod, wasm);
-  }
-*/
 }
 
 return API;
@@ -841,7 +788,7 @@ async function compile () {
   }
 
   async function compileStreaming(filename) {
-    const response = await fetch(filename);
+    const response = await fetch(filename); // this would be a winj
     const ab = toArrayBuffer(response);
     return WebAssembly.compile(ab);
   }
