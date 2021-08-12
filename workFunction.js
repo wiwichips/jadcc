@@ -15,18 +15,22 @@
  * limitations under the License.
  */
 
-///////////////////////////
-async function bigWinjWrapper() {
-/* 
-const CLANG_WINJ_BYTES   = WINJ_EMBED_FILE_AS_BIN('./clang');
-const MEMFS_WINJ_BYTES   = WINJ_EMBED_FILE_AS_BIN('./memfs');
-const SYSROOT_WINJ_BYTES = WINJ_EMBED_FILE_AS_BIN('./sysroot.tar');
-*/
+const winj = require('winj');
 
 const { promises: fs } = require('fs');
 const fetch = async function fetchWrapper(filename) {
   return fs.readFile(`./${filename}`);
 }
+
+
+///////////////////////////
+async function bigWinjWrapper() {
+
+const isWorkFun = true;
+
+
+// replace this comment with 100mb of files
+
 
 function sleep(ms) {
   return new Promise((resolve, _) => setTimeout(resolve, ms));
@@ -738,6 +742,7 @@ class API {
 
   async compileToAssembly(options) {
 console.log('compileToAssembly called -- ');
+debugger;
     const input = options.input;
     const output = options.output;
     const contents = options.contents;
@@ -791,8 +796,16 @@ function toArrayBuffer(buf) {
 // actually calls the compile stuff
 async function compile () {
   async function readBuffer(filename) {
-    const response = await fetch('sysroot.tar'); // this is where sysroot.tar is loaded
+    //const response = await fetch('sysroot.tar'); // this is where sysroot.tar is loaded
+    let response;
     
+    if (isWorkFun) {
+      response = SYSROOT_WINJ_BYTES; 
+      debugger;
+    } else {
+      response = await fetch('sysroot.tar');
+    }
+
     const ab = toArrayBuffer(response);
     return ab;
   }
@@ -800,13 +813,18 @@ async function compile () {
   async function compileStreaming(filename) {
     //const response = await fetch(filename); // this is where memfs and clang are loaded
     let response;
-
-    if (filename === 'clang') {
-      response = await fetch('clang'); 
-    } else if (filename === 'memfs') {
-      response = await fetch('memfs');
-    } else {
-      throw new Error('expected to loade clang or memfs');
+    
+    if (isWorkFun) {
+      if (filename === 'clang') {
+        response = CLANG_WINJ_BYTES; 
+      } else if (filename === 'memfs') {
+        response = MEMFS_WINJ_BYTES;
+      } else {
+        throw new Error('expected to load clang or memfs');
+      }
+    }
+    else {
+      response = await fetch(filename);
     }
 
     const ab = toArrayBuffer(response);
@@ -842,8 +860,49 @@ await compile();
 } ////////////////////// end of big winj wrapper
 
 
+/*
+const isWorkFun = true
 
-bigWinjWrapper().then((res) => {
-  console.log(`DONE - EXITING ${res}`);
-  process.exit(0);  
-})
+if (isWorkFun) {
+  async function main() {
+    console.log('About to embed files into work function');
+    const workFunction = await winj.embedFilesAsBinary(bigWinjWrapper);
+    console.log('done');
+
+    console.log('about to run the work function in an eval');
+    
+    eval(
+      `(${workFunction})().then((res) => {console.log("DONE EVAL")})`
+    );
+  }
+
+  main().then(process.exit(0));
+  }
+
+else {
+
+  bigWinjWrapper().then((res) => {
+    console.log(`DONE - EXITING ${res}`);
+    process.exit(0);  
+  })
+
+}
+*/
+
+
+async function main() {
+  const file = await fs.readFile('./winjFiles.js', 'utf8');
+  
+  let workFun = bigWinjWrapper.toString();
+  
+  workFun = workFun.replace('// replace this comment with 100mb of files', file);
+
+  eval(`(${workFun})().then((res) => {console.log("DONE EVAL")})`)
+  
+} 
+
+main().then();
+
+
+
+
