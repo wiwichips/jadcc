@@ -1,0 +1,23 @@
+{
+  "name": "jadcc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "workFunction.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wiwichips/jadcc.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wiwichips/jadcc/issues"
+  },
+  "homepage": "https://github.com/wiwichips/jadcc#readme",
+  "dependencies": {
+    "dcp-client": "file:../dcp-client",
+    "dcp-worker": "file:../dcp-worker"
+  }
+}
