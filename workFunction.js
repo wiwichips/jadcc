@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-const winj = require('winj');
 
 const { promises: fs } = require('fs');
 const fetch = async function fetchWrapper(filename) {
@@ -24,13 +23,23 @@ const fetch = async function fetchWrapper(filename) {
 
 
 ///////////////////////////
-async function bigWinjWrapper() {
+exports.workFunction = async function workFunction(DATUM_ARG, CLANG_ARG, MEMFS_ARG, SYSROOT_ARG) {
+
+debugger;
 
 const isWorkFun = true;
+/*
+const CLANG_WINJ_BYTES   = Buffer.from(CLANG_ARG,       'base64');
+const MEMFS_WINJ_BYTES   = Buffer.from(MEMFS_ARG,       'base64');
+const SYSROOT_WINJ_BYTES = Buffer.from(SYSROOT_ARG,     'base64');
+*/
+
+const CLANG_WINJ_BYTES   = CLANG_ARG 
+const MEMFS_WINJ_BYTES   = MEMFS_ARG 
+const SYSROOT_WINJ_BYTES = SYSROOT_ARG
 
 
-// replace this comment with 100mb of files
-
+debugger;
 
 function sleep(ms) {
   return new Promise((resolve, _) => setTimeout(resolve, ms));
@@ -371,6 +380,7 @@ class App {
   }
 
   async run() {
+    debugger;
     await this.ready;
     try {
       this.exports._start();
@@ -732,6 +742,7 @@ class API {
     const obj = options.obj;
     const opt = options.opt || '2';
 
+    debugger;
     await this.ready;
     this.memfs.addFile(input, contents);
     const clang = await this.getModule(this.clangFilename);
@@ -750,6 +761,7 @@ debugger;
     const triple = options.triple || 'x86_64';
     const opt = options.opt || '2';
 
+    debugger;
     await this.ready;
     this.memfs.addFile(input, contents);
     const clang = await this.getModule(this.clangFilename);
@@ -793,6 +805,16 @@ function toArrayBuffer(buf) {
   return ab;
 }
 
+function _base64ToArrayBuffer(base64) {
+    var binary_string = atob(base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
 // actually calls the compile stuff
 async function compile () {
   async function readBuffer(filename) {
@@ -803,10 +825,10 @@ async function compile () {
       response = SYSROOT_WINJ_BYTES; 
       debugger;
     } else {
-      response = await fetch('sysroot.tar');
+//      response = await fetch('sysroot.tar');
     }
 
-    const ab = toArrayBuffer(response);
+    const ab = _base64ToArrayBuffer(response);
     return ab;
   }
 
@@ -824,10 +846,10 @@ async function compile () {
       }
     }
     else {
-      response = await fetch(filename);
+//      response = await fetch(filename);
     }
 
-    const ab = toArrayBuffer(response);
+    const ab = _base64ToArrayBuffer(response);
     return WebAssembly.compile(ab);
   }
 
@@ -860,49 +882,17 @@ await compile();
 } ////////////////////// end of big winj wrapper
 
 
-/*
-const isWorkFun = true
-
-if (isWorkFun) {
-  async function main() {
-    console.log('About to embed files into work function');
-    const workFunction = await winj.embedFilesAsBinary(bigWinjWrapper);
-    console.log('done');
-
-    console.log('about to run the work function in an eval');
-    
-    eval(
-      `(${workFunction})().then((res) => {console.log("DONE EVAL")})`
-    );
-  }
-
-  main().then(process.exit(0));
-  }
-
-else {
-
-  bigWinjWrapper().then((res) => {
-    console.log(`DONE - EXITING ${res}`);
-    process.exit(0);  
-  })
-
-}
-*/
-
 
 async function main() {
-  const file = await fs.readFile('./winjFiles.js', 'utf8');
+ console.log('done');
+
+  console.log('about to run the work function in an eval');
   
-  let workFun = bigWinjWrapper.toString();
-  
-  workFun = workFun.replace('// replace this comment with 100mb of files', file);
+  eval(
+    `(${workFunction})().then((res) => {console.log("DONE EVAL")})`
+  );
+}
 
-  eval(`(${workFun})().then((res) => {console.log("DONE EVAL")})`)
-  
-} 
-
-main().then();
-
-
+//main()
 
 
