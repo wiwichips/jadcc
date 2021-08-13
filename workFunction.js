@@ -27,8 +27,6 @@ exports.workFunction = async function workFunction(DATUM_ARG, CLANG_ARG, MEMFS_A
 
 progress();
 
-debugger;
-
 const isWorkFun = true;
 /*
 const CLANG_WINJ_BYTES   = Buffer.from(CLANG_ARG,       'base64');
@@ -40,8 +38,6 @@ const CLANG_WINJ_BYTES   = CLANG_ARG
 const MEMFS_WINJ_BYTES   = MEMFS_ARG 
 const SYSROOT_WINJ_BYTES = SYSROOT_ARG
 
-
-debugger;
 
 function sleep(ms) {
   return new Promise((resolve, _) => setTimeout(resolve, ms));
@@ -383,7 +379,6 @@ class App {
 
   async run() {
     progress();
-    debugger;
     await this.ready;
     try {
       this.exports._start();
@@ -747,7 +742,6 @@ class API {
     const obj = options.obj;
     const opt = options.opt || '2';
 
-    debugger;
     await this.ready;
     this.memfs.addFile(input, contents);
     progress();
@@ -759,7 +753,6 @@ class API {
 
   async compileToAssembly(options) {
 console.log('compileToAssembly called -- ');
-debugger;
     const input = options.input;
     const output = options.output;
     const contents = options.contents;
@@ -767,7 +760,6 @@ debugger;
     const triple = options.triple || 'x86_64';
     const opt = options.opt || '2';
 
-    debugger;
     await this.ready;
     this.memfs.addFile(input, contents);
     const clang = await this.getModule(this.clangFilename);
@@ -831,7 +823,6 @@ async function compile () {
     
     if (isWorkFun) {
       response = SYSROOT_WINJ_BYTES; 
-      debugger;
     } else {
 //      response = await fetch('sysroot.tar');
     }

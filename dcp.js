@@ -1,28 +1,35 @@
 #!/usr/bin/env node
 
 const SCHEDULER_URL = new URL('http://scheduler.will.office.kingsds.network');
-//const SCHEDULER_URL = new URL('http://scheduler.staging.office.kingsds.network');
-//const SCHEDULER_URL = new URL('https://scheduler.distributed.computer');
 
 const workFunctionModule = require('./workFunction');
 const fs = require('fs').promises;
-debugger;
 
 /** Main program entry point */
 async function main() {
-  debugger;
   const compute = require('dcp/compute');
   const wallet = require('dcp/wallet');
   let startTime;
 
-  const job = compute.for(
-    [  `
-  int fac(int n) {
-    if (n < 1) return 1;
-    return n * fac(n - 1);
+  const args = process.argv.slice(2);
+
+  let fileNameReadPromises = [];
+  let data;
+
+  for (let i = 0; i < args.length; i++) {
+    fileNameReadPromises.push(fs.readFile(args[i], 'utf8'));
   }
-`
-],
+
+  try {
+    data = await Promise.all(fileNameReadPromises);
+  } catch (error) {
+    console.log('problem finding file');
+    console.log(error);
+    process.exit(1);
+  }
+
+  const job = compute.for(
+    data,
     workFunctionModule.workFunction,
   );
 
@@ -40,18 +47,21 @@ async function main() {
   const ks = await wallet.get(); /* usually loads ~/.dcp/default.keystore */
   job.setPaymentAccountKeystore(ks);
 
-  debugger;
-
   const results = Array.from(await job.localExec());
 //  const results = Array.from(await job.exec());
   console.log('results=', results);
 
-  await fs.writeFile('./test.o', results[0]);
-}
 
+  debugger;
+
+  for (let i = 0; i < results.length; i++) {
+    await fs.writeFile(`./build/asm-output${i}.S`, results[i]);
+  }
+}
 /* Initialize DCP Client and run main() */
 require('dcp-client')
   .init(SCHEDULER_URL)
   .then(main)
   .catch(console.error)
   .finally(process.exit);
+
