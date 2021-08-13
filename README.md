@@ -19,3 +19,7 @@
 * This only compiles libraries that do not source other c code
   * This will be the focus of future work on this project
 
+## Instructions
+* ensure your DCP users are using a dcp-client where the binaries are injected into the work functions arguments as base64 strings in this order (clang, memfs, sysroot.tar)
+* npm install
+* ./dcp.js
