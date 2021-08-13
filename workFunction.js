@@ -25,6 +25,8 @@ const fetch = async function fetchWrapper(filename) {
 ///////////////////////////
 exports.workFunction = async function workFunction(DATUM_ARG, CLANG_ARG, MEMFS_ARG, SYSROOT_ARG) {
 
+progress();
+
 debugger;
 
 const isWorkFun = true;
@@ -380,6 +382,7 @@ class App {
   }
 
   async run() {
+    progress();
     debugger;
     await this.ready;
     try {
@@ -411,6 +414,7 @@ class App {
       // Propagate error.
       throw exn;
     }
+    progress();
   }
 
   proc_exit(code) {
@@ -665,6 +669,7 @@ class Tar {
   }
 
   untar(memfs) {
+    progress();
     let entry;
     while (entry = this.readEntry()) {
       switch (entry.type) {
@@ -745,6 +750,7 @@ class API {
     debugger;
     await this.ready;
     this.memfs.addFile(input, contents);
+    progress();
     const clang = await this.getModule(this.clangFilename);
     return await this.run(clang, 'clang', '-cc1', '-emit-obj',
                           ...this.clangCommonArgs, '-O2', '-o', obj, '-x',
@@ -806,11 +812,13 @@ function toArrayBuffer(buf) {
 }
 
 function _base64ToArrayBuffer(base64) {
+    progress();
     var binary_string = atob(base64);
     var len = binary_string.length;
     var bytes = new Uint8Array(len);
     for (var i = 0; i < len; i++) {
         bytes[i] = binary_string.charCodeAt(i);
+        progress();
     }
     return bytes.buffer;
 }
@@ -863,21 +871,19 @@ async function compile () {
 
   const input = 'test.cc';
   const output = 'test.S';
-  const contents = `
-    int fac(int n) {
-      if (n < 1) return 1;
-      return n * fac(n - 1);
-    }
-  `;
+  const contents = DATUM_ARG;
+   
   const triple = 'x86_64';
   const opt = '2';
   const outputBuf = await api.compileToAssembly({input, output, contents, triple, opt});
 
   console.log('=-=-=-=- x86 compiled bytes:');
   console.log(outputBuf);
+  return outputBuf;
 }
 
-await compile();
+progress();
+return await compile();
 
 } ////////////////////// end of big winj wrapper
 

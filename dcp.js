@@ -5,6 +5,7 @@ const SCHEDULER_URL = new URL('http://scheduler.will.office.kingsds.network');
 //const SCHEDULER_URL = new URL('https://scheduler.distributed.computer');
 
 const workFunctionModule = require('./workFunction');
+const fs = require('fs').promises;
 debugger;
 
 /** Main program entry point */
@@ -15,7 +16,13 @@ async function main() {
   let startTime;
 
   const job = compute.for(
-    ['red'],
+    [  `
+  int fac(int n) {
+    if (n < 1) return 1;
+    return n * fac(n - 1);
+  }
+`
+],
     workFunctionModule.workFunction,
   );
 
@@ -35,9 +42,11 @@ async function main() {
 
   debugger;
 
-  const results = await job.localExec();
-//  const results = await job.exec();
-  console.log('results=', Array.from(results));
+  const results = Array.from(await job.localExec());
+//  const results = Array.from(await job.exec());
+  console.log('results=', results);
+
+  await fs.writeFile('./test.o', results[0]);
 }
 
 /* Initialize DCP Client and run main() */
