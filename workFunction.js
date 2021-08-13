@@ -774,7 +774,7 @@ debugger;
     await this.run(clang, 'clang', '-cc1', '-S', ...this.clangCommonArgs,
                           `-triple=${triple}`, '-mllvm',
                           '--x86-asm-syntax=intel', `-O${opt}`,
-                          '-o', output, '-x', 'c++', input);
+                          '-o', output, '-x', 'c', input);
     return this.memfs.getFileContents(output);
   }
 
